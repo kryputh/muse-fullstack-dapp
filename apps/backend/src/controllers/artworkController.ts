@@ -1,9 +1,33 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { createError } from '@/middleware/errorHandler'
 
-export const getArtworks = async (req: Request, res: Response) => {
+export const getArtworks = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { page = '1', limit = '20', category, sort } = req.query
+    
+    // Validate query parameters
+    const pageNum = parseInt(page as string)
+    const limitNum = parseInt(limit as string)
+    
+    if (isNaN(pageNum) || pageNum < 1) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Invalid page number. Must be a positive integer.',
+          code: 'INVALID_PAGE'
+        }
+      })
+    }
+    
+    if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Invalid limit. Must be between 1 and 100.',
+          code: 'INVALID_LIMIT'
+        }
+      })
+    }
     
     const artworks = [
       {
@@ -34,18 +58,19 @@ export const getArtworks = async (req: Request, res: Response) => {
       success: true,
       data: artworks,
       pagination: {
-        page: parseInt(page as string),
-        limit: parseInt(limit as string),
+        page: pageNum,
+        limit: limitNum,
         total: artworks.length,
       },
     })
   } catch (error) {
+    console.error('Error in getArtworks:', error)
     const err = createError('Failed to fetch artworks', 500)
     next(err)
   }
 }
 
-export const getArtworkById = async (req: Request, res: Response) => {
+export const getArtworkById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params
     
@@ -73,7 +98,7 @@ export const getArtworkById = async (req: Request, res: Response) => {
   }
 }
 
-export const createArtwork = async (req: Request, res: Response) => {
+export const createArtwork = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { title, description, imageUrl, price, prompt, aiModel } = req.body
     

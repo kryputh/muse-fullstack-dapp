@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as StellarSdk from '@stellar/stellar-sdk'
 import { freighterApi } from '@stellar/freighter-api'
+import { ErrorHandler, AppError } from '@/utils/errorHandler'
 
 export interface StellarAccount {
   publicKey: string
@@ -11,7 +12,7 @@ export interface StellarAccount {
 export interface StellarTransaction {
   hash: string
   status: 'pending' | 'success' | 'error'
-  error?: string
+  error?: AppError | null
 }
 
 export function useStellar() {
@@ -46,17 +47,20 @@ export function useStellar() {
             (b: any) => b.asset_type === 'native'
           )?.balance || '0'
           
-          setAccount(prev => ({
+          setAccount((prev: StellarAccount) => ({
             ...prev,
             balance,
           }))
         } catch (balanceError) {
-          console.error('Failed to fetch balance:', balanceError)
+          const appError = ErrorHandler.handle(balanceError)
+          console.error('Failed to fetch balance:', appError.userMessage)
+          // Don't throw error for balance fetch failure, just log it
         }
       }
     } catch (error) {
-      console.error('Failed to connect wallet:', error)
-      throw error
+      const appError = ErrorHandler.handle(error)
+      console.error('Failed to connect wallet:', appError.userMessage)
+      throw appError
     } finally {
       setIsLoading(false)
     }
@@ -77,8 +81,9 @@ export function useStellar() {
       const result = await freighterApi.signTransaction(xdr, networkPassphrase)
       return result
     } catch (error) {
-      console.error('Failed to sign transaction:', error)
-      throw error
+      const appError = ErrorHandler.handle(error)
+      console.error('Failed to sign transaction:', appError.userMessage)
+      throw appError
     }
   }, [])
 
@@ -106,7 +111,7 @@ export function useStellar() {
 
       if (result.status === 'PENDING') {
         // Wait for transaction confirmation
-        const txResult = await server.getTransaction(result.hash)
+        await server.getTransaction(result.hash)
         return {
           hash: result.hash,
           status: 'success',
@@ -115,15 +120,16 @@ export function useStellar() {
         return {
           hash: result.hash,
           status: 'error',
-          error: result.status,
+          error: ErrorHandler.handle(new Error(`Transaction failed: ${result.status}`))
         }
       }
     } catch (error) {
-      console.error('Failed to send transaction:', error)
+      const appError = ErrorHandler.handle(error)
+      console.error('Failed to send transaction:', appError.userMessage)
       return {
         hash: '',
         status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: appError
       }
     }
   }, [network, server, signTransaction])
@@ -146,12 +152,13 @@ export function useStellar() {
         (b: any) => b.asset_type === 'native'
       )?.balance || '0'
       
-      setAccount(prev => ({
+      setAccount((prev: StellarAccount) => ({
         ...prev,
         balance,
       }))
     } catch (error) {
-      console.error('Failed to refresh balance:', error)
+      const appError = ErrorHandler.handle(error)
+      console.error('Failed to refresh balance:', appError.userMessage)
     }
   }, [account.isConnected, account.publicKey, server])
 
