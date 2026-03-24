@@ -1,51 +1,10 @@
 import { useEffect } from 'react'
 import { Artwork } from '@/services/artworkService'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
-import { ArtworkCardSkeleton, ArtworkGridSkeleton } from './ArtworkCardSkeleton'
+import { ArtworkCard, type ArtworkCardProps } from '@/components/artwork/ArtworkCard'
+import { Grid } from '@/components/layout/Grid'
+import { LoadingCard } from '@/components/ui/Loading'
 import { EmptyState } from './EmptyState'
-
-interface ArtworkCardProps {
-  artwork: Artwork
-  onPurchase?: (artwork: Artwork) => void
-}
-
-function ArtworkCard({ artwork, onPurchase }: ArtworkCardProps) {
-  return (
-    <div className="card-mobile overflow-hidden group cursor-pointer touch-manipulation">
-      <div className="aspect-square bg-gradient-to-br from-primary-100 to-primary-200 relative overflow-hidden group-hover:scale-105 transition-transform">
-        <img
-          src={artwork.imageUrl}
-          alt={artwork.title}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement
-            target.style.display = 'none'
-            target.parentElement?.classList.add('bg-gradient-to-br', 'from-primary-100', 'to-primary-200')
-          }}
-        />
-      </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-secondary-900 text-mobile-base truncate">
-          {artwork.title}
-        </h3>
-        <p className="text-mobile-sm text-secondary-600 mb-2 line-clamp-2">
-          {artwork.description}
-        </p>
-        <div className="flex items-center justify-between">
-          <span className="text-mobile-sm font-medium text-secondary-900">
-            {artwork.price} {artwork.currency}
-          </span>
-          <button
-            onClick={() => onPurchase?.(artwork)}
-            className="btn-primary text-mobile-sm px-4 py-2 touch-manipulation"
-          >
-            Buy Now
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 interface ArtworkGridProps {
   artworks: Artwork[]
@@ -54,8 +13,13 @@ interface ArtworkGridProps {
   isFetchingNextPage: boolean
   onLoadMore: () => void
   onPurchase?: (artwork: Artwork) => void
+  onView?: (artwork: Artwork) => void
   onClearFilters?: () => void
   hasFilters?: boolean
+  cardVariant?: ArtworkCardProps['variant']
+  showPrice?: boolean
+  showCreator?: boolean
+  loadingCount?: number
 }
 
 export function ArtworkGrid({
@@ -65,8 +29,13 @@ export function ArtworkGrid({
   isFetchingNextPage,
   onLoadMore,
   onPurchase,
+  onView,
   onClearFilters,
   hasFilters = false,
+  cardVariant = 'default',
+  showPrice = true,
+  showCreator = false,
+  loadingCount = 8
 }: ArtworkGridProps) {
   const loadMoreRef = useIntersectionObserver({
     onIntersect: onLoadMore,
@@ -76,7 +45,7 @@ export function ArtworkGrid({
 
   // Show skeleton on initial load
   if (isLoading && artworks.length === 0) {
-    return <ArtworkGridSkeleton count={8} />
+    return <LoadingCard count={loadingCount} variant="artwork" />
   }
 
   // Show empty state when no artworks
@@ -91,18 +60,22 @@ export function ArtworkGrid({
 
   return (
     <>
-      <div className="grid-mobile xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <Grid responsive gap="md">
         {artworks.map((artwork) => (
           <ArtworkCard
             key={artwork.id}
             artwork={artwork}
+            variant={cardVariant}
             onPurchase={onPurchase}
+            onView={onView}
+            showPrice={showPrice}
+            showCreator={showCreator}
           />
         ))}
-      </div>
+      </Grid>
 
       {/* Loading indicator for infinite scroll */}
-      {isFetchingNextPage && <ArtworkGridSkeleton count={4} />}
+      {isFetchingNextPage && <LoadingCard count={4} variant="artwork" />}
 
       {/* Intersection observer target */}
       {hasNextPage && !isFetchingNextPage && (

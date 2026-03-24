@@ -33,7 +33,7 @@ export function HomePage() {
             </a>
             <button className="btn-outline w-full text-base font-medium">
               Create Art
-            </button>
+            </Button>
           </div>
         </div>
       </div>

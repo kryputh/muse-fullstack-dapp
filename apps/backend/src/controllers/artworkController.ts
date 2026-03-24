@@ -6,6 +6,10 @@ import {
   createDatabaseError,
   createExternalServiceError 
 } from '@/middleware/errorHandler'
+import { invalidateArtworkCache } from '@/middleware/cacheMiddleware'
+import { createLogger } from '@/utils/logger'
+
+const logger = createLogger('ArtworkController')
 
 export const getArtworks = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -72,7 +76,7 @@ export const getArtworks = async (req: Request, res: Response, next: NextFunctio
       },
     })
   } catch (error) {
-    console.error('Error in getArtworks:', error)
+    logger.error('Error in getArtworks:', error)
     
     // Handle different types of errors
     if (error instanceof Error) {
@@ -132,7 +136,7 @@ export const getArtworkById = async (req: Request, res: Response, next: NextFunc
       data: artwork,
     })
   } catch (error) {
-    console.error('Error in getArtworkById:', error)
+    logger.error('Error in getArtworkById:', error)
     
     const err = createError(
       'Unable to load artwork details',
@@ -202,8 +206,13 @@ export const createArtwork = async (req: Request, res: Response, next: NextFunct
       success: true,
       data: artwork,
     })
+
+    // Invalidate relevant caches after creating new artwork
+    invalidateArtworkCache().catch(error => 
+      logger.error('Failed to invalidate cache after artwork creation:', error)
+    )
   } catch (error) {
-    console.error('Error in createArtwork:', error)
+    logger.error('Error in createArtwork:', error)
     
     const err = createError(
       'Unable to create artwork at this time',

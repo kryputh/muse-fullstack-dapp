@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { createError } from '@/middleware/errorHandler'
+import { invalidateArtworkCache } from '@/middleware/cacheMiddleware'
+import { createLogger } from '@/utils/logger'
+
+const logger = createLogger('MetadataController')
 
 export const getArtworkMetadata = async (req: Request, res: Response, next: NextFunction) => {
   try {

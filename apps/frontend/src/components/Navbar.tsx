@@ -1,13 +1,24 @@
-import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
+import { Muse } from 'lucide-react'
+import { Navigation, MobileMenuToggle } from '@/components/composite/Navigation'
 import { WalletConnect } from './WalletConnect'
 import { Palette, Menu, X } from 'lucide-react'
 
 export function Navbar() {
-  const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  const isActive = (path: string) => location.pathname === path
+  const navigationItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Explore', href: '/explore' },
+    { label: 'Create', href: '/mint' },
+    { label: 'Profile', href: '/profile' }
+  ]
+
+  const brand = {
+    name: 'Muse',
+    icon: <Muse className="h-8 w-8 text-primary-600" />,
+    href: '/'
+  }
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -84,57 +95,11 @@ export function Navbar() {
       
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-secondary-200">
-          <div className="px-4 py-2 space-y-1">
-            <Link
-              to="/"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                isActive('/') 
-                  ? 'text-primary-600 bg-primary-50' 
-                  : 'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-50'
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/explore"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                isActive('/explore') 
-                  ? 'text-primary-600 bg-primary-50' 
-                  : 'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-50'
-              }`}
-            >
-              Explore
-            </Link>
-            <Link
-              to="/mint"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                isActive('/mint') 
-                  ? 'text-primary-600 bg-primary-50' 
-                  : 'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-50'
-              }`}
-            >
-              Create
-            </Link>
-            <Link
-              to="/profile"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                isActive('/profile') 
-                  ? 'text-primary-600 bg-primary-50' 
-                  : 'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-50'
-              }`}
-            >
-              Profile
-            </Link>
-            <div className="pt-4 pb-2 border-t border-secondary-200">
-              <WalletConnect />
-            </div>
-          </div>
-        </div>
+        <Navigation
+          items={navigationItems}
+          mobile
+          actions={<WalletConnect />}
+        />
       )}
     </nav>
   )

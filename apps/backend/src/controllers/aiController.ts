@@ -1,7 +1,10 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { createError } from '@/middleware/errorHandler'
+import { createLogger } from '@/utils/logger'
 
-export const generateImage = async (req: Request, res: Response) => {
+const logger = createLogger('AIController')
+
+export const generateImage = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { prompt, style = 'digital-art', quality = 'standard' } = req.body
     
@@ -33,7 +36,7 @@ export const generateImage = async (req: Request, res: Response) => {
   }
 }
 
-export const getGenerationStatus = async (req: Request, res: Response) => {
+export const getGenerationStatus = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params
     

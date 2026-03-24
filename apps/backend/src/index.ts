@@ -8,12 +8,17 @@ import dotenv from 'dotenv'
 
 import { errorHandler } from '@/middleware/errorHandler'
 import { notFound } from '@/middleware/notFound'
+import cacheService from '@/services/cacheService'
+import { createLogger } from '@/utils/logger'
 import artworkRoutes from '@/routes/artwork'
 import userRoutes from '@/routes/user'
 import aiRoutes from '@/routes/ai'
 import metadataRoutes from '@/routes/metadata'
+import cacheRoutes from '@/routes/cache'
 
 dotenv.config()
+
+const logger = createLogger('Server')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -47,13 +52,28 @@ app.use('/api/artworks', artworkRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/metadata', metadataRoutes)
+app.use('/api/cache', cacheRoutes)
 
 app.use(notFound)
 app.use(errorHandler)
 
 app.listen(PORT, () => {
-  console.log(`🚀 Muse Backend API running on port ${PORT}`)
-  console.log(`📊 Health check: http://localhost:${PORT}/health`)
+  logger.info(`🚀 Muse Backend API running on port ${PORT}`)
+  logger.info(`📊 Health check: http://localhost:${PORT}/health`)
+  logger.info(`🗄️ Cache stats: ${JSON.stringify(cacheService.getCacheStats())}`)
+})
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, shutting down gracefully')
+  await cacheService.disconnect()
+  process.exit(0)
+})
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down gracefully')
+  await cacheService.disconnect()
+  process.exit(0)
 })
 
 export default app

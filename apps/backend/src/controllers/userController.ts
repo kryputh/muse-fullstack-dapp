@@ -1,7 +1,11 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { createError } from '@/middleware/errorHandler'
+import { invalidateUserCache } from '@/middleware/cacheMiddleware'
+import { createLogger } from '@/utils/logger'
 
-export const getUserProfile = async (req: Request, res: Response) => {
+const logger = createLogger('UserController')
+
+export const getUserProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = {
       address: '0x1234...5678',
@@ -26,7 +30,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
   }
 }
 
-export const updateUserProfile = async (req: Request, res: Response) => {
+export const updateUserProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { username, bio, profileImage } = req.body
     
@@ -47,6 +51,12 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       success: true,
       data: updatedUser,
     })
+
+    // Invalidate user cache after profile update
+    const userAddress = updatedUser.address || '0x1234...5678'
+    invalidateUserCache(userAddress).catch(error => 
+      logger.error('Failed to invalidate cache after profile update:', error)
+    )
   } catch (error) {
     const err = createError('Failed to update user profile', 500)
     next(err)

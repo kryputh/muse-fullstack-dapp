@@ -1,11 +1,34 @@
 import { User, Settings, Heart, ShoppingBag } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Grid } from '@/components/layout/Grid'
+import { ArtworkCard } from '@/components/artwork/ArtworkCard'
+
+// Mock data for demonstration
+const mockArtworks = Array.from({ length: 6 }, (_, i) => ({
+  id: `profile-${i + 1}`,
+  title: `AI Artwork #${i + 1}`,
+  description: 'Generated with AI Model',
+  imageUrl: '',
+  price: '0.1',
+  currency: 'ETH',
+  creator: 'Current User'
+}))
 
 export function ProfilePage() {
+  const handleArtworkView = (artwork: typeof mockArtworks[0]) => {
+    console.log('View artwork:', artwork)
+  }
+
+  const handleEditProfile = () => {
+    console.log('Edit profile')
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1">
-          <div className="card p-6 text-center">
+          <Card padding="lg" className="text-center">
             <div className="w-24 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-secondary-900">Artist Name</h2>
             <p className="text-secondary-600 mb-4">0x1234...5678</p>
@@ -26,12 +49,12 @@ export function ProfilePage() {
             </div>
             
             <div className="mt-6 space-y-2">
-              <button className="btn-outline w-full py-2 flex items-center justify-center space-x-2">
-                <Settings className="h-4 w-4" />
-                <span>Edit Profile</span>
-              </button>
+              <Button variant="outline" size="md" fullWidth onClick={handleEditProfile}>
+                <Settings className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
         
         <div className="lg:col-span-3">
@@ -48,21 +71,18 @@ export function ProfilePage() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="card overflow-hidden group cursor-pointer">
-                    <div className="aspect-square bg-gradient-to-br from-primary-100 to-primary-200 group-hover:scale-105 transition-transform" />
-                    <div className="p-4">
-                      <h3 className="font-semibold text-secondary-900">AI Artwork #{i}</h3>
-                      <p className="text-sm text-secondary-600 mb-2">Generated with AI Model</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-secondary-900">0.1 ETH</span>
-                        <button className="btn-primary text-sm px-3 py-1">View</button>
-                      </div>
-                    </div>
-                  </div>
+              <Grid columns={3} gap="md" responsive={false}>
+                {mockArtworks.map((artwork) => (
+                  <ArtworkCard
+                    key={artwork.id}
+                    artwork={artwork}
+                    variant="default"
+                    onView={handleArtworkView}
+                    showPrice={true}
+                    showCreator={false}
+                  />
                 ))}
-              </div>
+              </Grid>
             </div>
           </div>
         </div>
