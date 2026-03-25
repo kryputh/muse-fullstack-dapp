@@ -5,6 +5,7 @@ import { ArtworkCard, type ArtworkCardProps } from '@/components/artwork/Artwork
 import { Grid } from '@/components/layout/Grid'
 import { LoadingCard } from '@/components/ui/Loading'
 import { EmptyState } from './EmptyState'
+import { Pagination, PaginationInfo } from '@/components/ui/Pagination'
 
 interface ArtworkGridProps {
   artworks: Artwork[]
@@ -20,6 +21,13 @@ interface ArtworkGridProps {
   showPrice?: boolean
   showCreator?: boolean
   loadingCount?: number
+  // Pagination props
+  currentPage?: number
+  totalPages?: number
+  totalItems?: number
+  itemsPerPage?: number
+  onPageChange?: (page: number) => void
+  usePagination?: boolean
 }
 
 export function ArtworkGrid({
@@ -35,11 +43,17 @@ export function ArtworkGrid({
   cardVariant = 'default',
   showPrice = true,
   showCreator = false,
-  loadingCount = 8
+  loadingCount = 8,
+  currentPage = 1,
+  totalPages = 1,
+  totalItems = 0,
+  itemsPerPage = 20,
+  onPageChange,
+  usePagination = false
 }: ArtworkGridProps) {
   const loadMoreRef = useIntersectionObserver({
     onIntersect: onLoadMore,
-    enabled: hasNextPage && !isFetchingNextPage,
+    enabled: !usePagination && hasNextPage && !isFetchingNextPage,
     rootMargin: '200px',
   })
 
@@ -60,6 +74,16 @@ export function ArtworkGrid({
 
   return (
     <>
+      {/* Pagination Info */}
+      {usePagination && totalItems > 0 && (
+        <PaginationInfo
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+        />
+      )}
+
       <Grid responsive gap="md">
         {artworks.map((artwork) => (
           <ArtworkCard
@@ -75,18 +99,28 @@ export function ArtworkGrid({
       </Grid>
 
       {/* Loading indicator for infinite scroll */}
-      {isFetchingNextPage && <LoadingCard count={4} variant="artwork" />}
+      {!usePagination && isFetchingNextPage && <LoadingCard count={4} variant="artwork" />}
 
-      {/* Intersection observer target */}
-      {hasNextPage && !isFetchingNextPage && (
+      {/* Intersection observer target for infinite scroll */}
+      {!usePagination && hasNextPage && !isFetchingNextPage && (
         <div ref={loadMoreRef} className="w-full h-4" />
       )}
 
-      {/* End of results message */}
-      {!hasNextPage && !isLoading && artworks.length > 0 && (
+      {/* End of results message for infinite scroll */}
+      {!usePagination && !hasNextPage && !isLoading && artworks.length > 0 && (
         <div className="text-center py-8 text-secondary-600 text-mobile-sm">
           You've reached the end of the collection
         </div>
+      )}
+
+      {/* Pagination Controls */}
+      {usePagination && totalPages > 1 && onPageChange && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          isLoading={isLoading}
+        />
       )}
     </>
   )

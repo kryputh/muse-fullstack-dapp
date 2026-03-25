@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useArtworks, type Artwork, type ArtworksFilters } from '@/services/artworkService'
 import { ArtworkGrid } from '@/components/ArtworkGrid'
+import { Button } from '@/components/ui/Button'
 import { Search, Filter } from 'lucide-react'
 
 export function ExplorePage() {
